@@ -9,6 +9,9 @@ final int ROCK_COUNT = 10;
 
 boolean playing = false;
 
+FileHandling fd = new FileHandling();
+int best5[] = new int[5];
+int gameAvg, gameCount;
 int score = 0;
 
 void setup() {
@@ -20,6 +23,7 @@ void setup() {
   }
   textAlign(CENTER);
   resetGame();
+  getScores();
 }
 
 void draw() {
@@ -37,7 +41,9 @@ void displayHome() {
   textSize(40);
   text("Gravity 0.1", width/2, 100);
   textSize(32);
-  text("Your Score: "+score/60, width/2, 200);
+  text("Best5: "+best5[0]+" "+best5[1]+" "+best5[2]+" "+best5[3]+" "+best5[4]+" ", width/2, 200);
+  text("Avg: "+gameAvg+" in "+gameCount+" games.", width/2, 300);
+  text("Your Score: "+score/60, width/2, 400);
 }
 
 void displayGame() {
@@ -62,6 +68,7 @@ void updateGame() {
   for (int i=0; i<ROCK_COUNT; i++) {
     if (rocks[i].contains(px, py, rad)) {
       playing = false;
+      updateScores();
       return;
     }
     if(rocks[i].update(1))
@@ -99,8 +106,36 @@ void resetGame() {
   }
 }
 
+void updateScores() {
+  int i=4;
+  while (i>0 && best5[i-1] < score/60) {
+    best5[i] = best5[i-1];
+    i--;
+  }
+  if (best5[i] < score/60) best5[i] = score/60;
+  gameAvg = (gameAvg * gameCount + score/60) / (gameCount + 1);
+  gameCount++;
+  setScores();
+}
+
 float mapa(float t) {
   return map(t, 0, 1023, -1, 1);
+}
+
+void setScores() {
+  int nums[] = {best5[0], best5[1], best5[2], best5[3], best5[4], gameAvg, gameCount};
+  fd.saveScore(nums);
+}
+
+void getScores() {
+  int nums[] = fd.loadScore();
+  best5[0] = nums[0];
+  best5[1] = nums[1];
+  best5[2] = nums[2];
+  best5[3] = nums[3];
+  best5[4] = nums[4];
+  gameAvg = nums[5];
+  gameCount = nums[6];
 }
 
 void keyPressed() {
